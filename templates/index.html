@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonic Finder - AI Music Recommender</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Animated background waves -->
+    <div class="waves-bg">
+        <div class="wave wave-1"></div>
+        <div class="wave wave-2"></div>
+        <div class="wave wave-3"></div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="sonic-badge">
+                    <span class="pulse-dot"></span>
+                    <span class="badge-text">114K+ Tracks Analyzed</span>
+                </div>
+
+                <h1 class="hero-title">
+                    <span class="title-main">Sonic</span>
+                    <span class="title-accent">Finder</span>
+                </h1>
+
+                <p class="hero-subtitle">
+                    Encuentra tu próxima canción favorita a través de <span class="highlight">características de audio</span> y análisis de contenido basado en IA.
+                </p>
+
+                <!-- Search Box -->
+                <div class="search-container">
+                    <div class="search-wrapper">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                        <input
+                            type="text"
+                            id="trackSearch"
+                            class="search-input"
+                            placeholder="Busca una canción... (ej. Bohemian Rhapsody)"
+                            autocomplete="off"
+                        >
+                        <div class="search-loader" id="searchLoader"></div>
+                    </div>
+
+                    <!-- Autocomplete dropdown -->
+                    <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+                </div>
+
+                <!-- Quick suggestions -->
+                <div class="quick-suggestions">
+                    <span class="suggestion-label">Prueba con:</span>
+                    <button class="suggestion-chip" data-track="Bohemian Rhapsody">Bohemian Rhapsody</button>
+                    <button class="suggestion-chip" data-track="Blinding Lights">Blinding Lights</button>
+                    <button class="suggestion-chip" data-track="Wonderwall">Wonderwall</button>
+                </div>
+            </div>
+
+            <!-- Floating audio bars decoration -->
+            <div class="audio-bars">
+                <div class="bar" style="--delay: 0s; --height: 40%;"></div>
+                <div class="bar" style="--delay: 0.1s; --height: 70%;"></div>
+                <div class="bar" style="--delay: 0.2s; --height: 50%;"></div>
+                <div class="bar" style="--delay: 0.3s; --height: 85%;"></div>
+                <div class="bar" style="--delay: 0.4s; --height: 60%;"></div>
+                <div class="bar" style="--delay: 0.5s; --height: 45%;"></div>
+                <div class="bar" style="--delay: 0.6s; --height: 75%;"></div>
+                <div class="bar" style="--delay: 0.7s; --height: 55%;"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results-section" id="resultsSection" style="display: none;">
+        <div class="container">
+            <div class="results-header">
+                <h2 class="results-title">
+                    Canciones similares a <span class="seed-track" id="seedTrack"></span>
+                </h2>
+                <button class="reset-btn" id="resetBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                        <path d="M21 3v5h-5"></path>
+                        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                        <path d="M3 21v-5h5"></path>
+                    </svg>
+                    Nueva búsqueda
+                </button>
+            </div>
+
+            <!-- Vector Space Visualization -->
+            <div class="similarity-chart-container" id="similarityChartContainer">
+                <h3 class="chart-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px; display: inline-block; vertical-align: middle; margin-right: 8px;">
+                        <circle cx="12" cy="12" r="2"></circle>
+                        <path d="M12 2 L12 10 M12 14 L12 22 M2 12 L10 12 M14 12 L22 12"></path>
+                        <path d="M18 6 L12 12 M18 18 L12 12 M6 6 L12 12 M6 18 L12 12" stroke-opacity="0.5"></path>
+                    </svg>
+                    Espacio Vectorial - Similitud del Coseno (PCA 2D)
+                </h3>
+                <div class="chart-wrapper">
+                    <canvas id="similarityChart"></canvas>
+                </div>
+            </div>
+
+            <div class="recommendations-grid" id="recommendationsGrid"></div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <h2 class="section-title">Cómo funciona</h2>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">114K Canciones</h3>
+                    <p class="feature-description">
+                        Base de datos masiva de Spotify con análisis de características de audio de cada track.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                            <path d="M2 12h20"></path>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Content-Based AI</h3>
+                    <p class="feature-description">
+                        Algoritmo K-NN con similitud del coseno usando scikit-learn para búsqueda precisa de canciones similares.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">10 Audio Features</h3>
+                    <p class="feature-description">
+                        Análisis multidimensional: danceability, energy, valence, tempo, acousticness, y más.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Búsqueda Precisa</h3>
+                    <p class="feature-description">
+                        Resultados exactos en milisegundos gracias a K-Nearest Neighbors con StandardScaler.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EDA Section -->
+    <section class="eda-section">
+        <div class="container">
+            <h2 class="section-title">Análisis Exploratorio de Datos</h2>
+            <p class="eda-intro">
+                Antes de construir el sistema de recomendación, realizo un análisis exhaustivo de las 114K canciones para validar decisiones de preprocesamiento y entender la estructura de los datos.
+            </p>
+
+            <div class="eda-grid">
+                <!-- 1. Normalization Justification -->
+                <div class="eda-card">
+                    <div class="eda-image-wrapper">
+                        <img src="/static/images/eda_normalization_need.png" alt="Justificación de normalización" loading="lazy">
+                    </div>
+                    <div class="eda-content">
+                        <h3 class="eda-title">
+                            <span class="eda-number">01</span>
+                            Necesidad de Normalización
+                        </h3>
+                        <p class="eda-description">
+                            Las features de audio presentan escalas completamente dispares: <code>duration_ms</code> tiene un rango de ~5.4 millones mientras que <code>speechiness</code> varía entre 0-1. Sin <strong>StandardScaler</strong>, las variables de gran escala dominarían completamente el cálculo de similitud del coseno, anulando el efecto de features normalizadas. El gráfico muestra cómo la normalización equipara todas las contribuciones, transformando rangos logarítmicos dispares (izquierda) en escalas equiparadas de ~10-12 (derecha).
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 2. Distributions -->
+                <div class="eda-card">
+                    <div class="eda-image-wrapper">
+                        <img src="/static/images/eda_distributions.png" alt="Distribuciones de features" loading="lazy">
+                    </div>
+                    <div class="eda-content">
+                        <h3 class="eda-title">
+                            <span class="eda-number">02</span>
+                            Distribuciones de Audio Features
+                        </h3>
+                        <p class="eda-description">
+                            Los histogramas revelan la naturaleza heterogénea del dataset: <code>danceability</code> sigue una distribución normal (μ=0.55), <code>energy</code> es bimodal reflejando dos tipos de música (calmada vs. intensa), mientras que <code>speechiness</code> e <code>instrumentalness</code> presentan sesgo pronunciado hacia la derecha indicando que la mayoría de tracks son vocales con bajo contenido hablado. Estas distribuciones asimétricas justifican el uso de StandardScaler que normaliza por media/desviación sin asumir normalidad.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 3. Correlations -->
+                <div class="eda-card">
+                    <div class="eda-image-wrapper">
+                        <img src="/static/images/eda_correlation_heatmap.png" alt="Matriz de correlación" loading="lazy">
+                    </div>
+                    <div class="eda-content">
+                        <h3 class="eda-title">
+                            <span class="eda-number">03</span>
+                            Correlaciones Entre Features
+                        </h3>
+                        <p class="eda-description">
+                            El heatmap identifica redundancias potenciales: <code>energy</code> ↔ <code>loudness</code> (r=0.76) muestra alta correlación positiva esperada (canciones energéticas son ruidosas), mientras que <code>energy</code> ↔ <code>acousticness</code> (r=-0.73) presenta correlación negativa fuerte (acústico implica baja energía). A pesar de estas correlaciones moderadas-altas, se mantienen las 10 features porque aportan información complementaria valiosa para la similitud contextual, y el modelo K-NN con similitud del coseno maneja bien espacios con cierta colinealidad.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 4. Outliers -->
+                <div class="eda-card">
+                    <div class="eda-image-wrapper">
+                        <img src="/static/images/eda_outliers_boxplots.png" alt="Detección de outliers" loading="lazy">
+                    </div>
+                    <div class="eda-content">
+                        <h3 class="eda-title">
+                            <span class="eda-number">04</span>
+                            Detección de Outliers
+                        </h3>
+                        <p class="eda-description">
+                            Los boxplots revelan presencia significativa de outliers en features como <code>loudness</code> (canciones extremadamente ruidosas o silenciosas), <code>speechiness</code> (podcasts/spoken word), <code>instrumentalness</code> (tracks puramente instrumentales), y <code>duration_ms</code> (canciones excepcionalmente largas >20 min). StandardScaler maneja estos outliers apropiadamente al normalizar sin clipear valores extremos, preservando la variabilidad natural del dataset que es crucial para detectar canciones únicas con características atípicas durante la búsqueda de similitud.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3 class="footer-logo">Sonic<span>Finder</span></h3>
+                    <p class="footer-tagline">Powered by scikit-learn & FastAPI</p>
+                </div>
+                <div class="footer-stats">
+                    <div class="stat">
+                        <div class="stat-value" id="totalTracks">114,000</div>
+                        <div class="stat-label">Tracks</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">10</div>
+                        <div class="stat-label">Features</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">&lt;1ms</div>
+                        <div class="stat-label">Query Speed</div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Sonic Finder. Sistema de recomendación de música basado en IA.</p>
+                <p class="footer-linkedin">
+                    Por <a href="https://www.linkedin.com/in/nicolas-bargioni/" target="_blank" rel="noopener noreferrer">Nicolás Bargioni</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
