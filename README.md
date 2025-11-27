@@ -115,16 +115,13 @@ El sistema utiliza 10 características de audio de Spotify:
 
 ---
 
----
-
 ## 🌐 Uso de la Web App
 
 ### Interfaz Web (Sonic Finder)
 
-1. Abre http://localhost:8080 en tu navegador
-2. Escribe el nombre de una canción en el buscador
-3. Selecciona de las sugerencias de autocompletado
-4. ¡Obtén 10 recomendaciones similares instantáneamente!
+1. Escribe el nombre de una canción en el buscador
+2. Selecciona de las sugerencias de autocompletado
+3. ¡Obtén 10 recomendaciones similares instantáneamente!
 
 **Features de la interfaz:**
 - Búsqueda con autocompletado en tiempo real
@@ -307,34 +304,6 @@ docker run -p 8080:8080 spotify-recommender
 ./deploy-cloudrun.sh
 ```
 
-**Ver guía completa**: [DEPLOYMENT.md](DEPLOYMENT.md)
-
-### Configuración Cloud Run recomendada
-
-- **Memory**: 2 GiB
-- **CPU**: 2 vCPU
-- **Timeout**: 300s
-- **Min instances**: 1 (evita cold starts)
-- **Max instances**: 10
-
----
-
-## ⚡ Performance
-
-- **Entrenamiento del modelo**: ~10-20 segundos (114k canciones)
-- **Búsqueda**: **< 1ms** por query
-- **Tamaño del modelo**: ~8.7 MB (sklearn_model.pkl)
-- **RAM en producción**: ~500 MB
-
----
-
-## 📚 Referencias
-
-- [scikit-learn NearestNeighbors](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.NearestNeighbors.html)
-- [Spotify Web API - Audio Features](https://developer.spotify.com/documentation/web-api/reference/get-audio-features)
-
----
-
 ## 🛠️ Troubleshooting
 
 ### Error: "Track not found"
@@ -348,10 +317,6 @@ docker run -p 8080:8080 spotify-recommender
 ### Performance lenta
 - Verifica que el modelo esté correctamente cargado
 - El modelo K-NN usa búsqueda exacta, siempre rápida (< 1ms)
-
----
-
----
 
 ## 🎨 Diseño de la Interfaz
 
@@ -385,46 +350,3 @@ docker run -p 8080:8080 spotify-recommender
 - **Google Cloud Build** - CI/CD
 - **Google Cloud Run** - Serverless deployment
 - **Uvicorn** - ASGI server
-
----
-
-## 📈 Performance Metrics
-
-- **Model Training Time**: ~10-20 segundos (114K tracks)
-- **Query Speed**: **< 1ms** por búsqueda
-- **Model Size**: ~8.7 MB (sklearn_model.pkl)
-- **Memory Usage**: ~500 MB en producción
-- **Cold Start**: ~5-10s (carga del modelo)
-- **API Response Time**: ~50-100ms (incluye red)
-
----
-
-## 🤝 Contribuciones
-
-Mejoras bienvenidas:
-
-1. Fork el repositorio
-2. Crea una branch (`git checkout -b feature/nueva-feature`)
-3. Commit cambios (`git commit -m 'Agrega nueva feature'`)
-4. Push a la branch (`git push origin feature/nueva-feature`)
-5. Abre un Pull Request
-
----
-
-## 📄 Licencia
-
-MIT License - Ver LICENSE para más detalles
-
----
-
-## 🎯 Roadmap
-
-- [ ] Filtros avanzados (por género, año, popularidad)
-- [ ] Playlist generation automática
-- [ ] Integración con Spotify API para reproducción
-- [ ] Sistema de favoritos y historial
-- [ ] A/B testing de algoritmos
-- [ ] Modo de exploración por features
-- [ ] Export de recomendaciones a CSV/JSON
-- [ ] Dashboard de analytics
-# recommender-system
